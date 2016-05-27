@@ -1,6 +1,68 @@
 // TV Schedule example
 
-function formatDate(start, end) {
+$(document).ready(function(){
+  retrieveGenres();
+
+  $(document).on('click', 'li', function() {
+    getTomorrowsSchedule($(this).attr("id"));
+})})
+
+
+
+function retrieveGenres() {
+  // AJAX call using jQuery that retrieve and process the result
+    $.ajax({
+    url: "http://www.bbc.co.uk/tv/programmes/genres.json",
+    dataType: 'json',
+ //   beforeSend: function() {
+//$("#programmes").empty();
+//    }
+    }).done(function(data) {
+        getGenresList(data);
+    })
+}
+
+
+function getGenresList(data) {
+    $(data.categories).each(function() {
+        $("#genres").append("<li id=\"" + this.key + "\">" + this.title + "</li>");
+ //       $("li")
+  //          .attr("id", this.key)
+ //           .html(this.title)
+  //          .appendTo("#genres");
+    })
+}
+
+
+function getTomorrowsSchedule(genre) {
+    $("#programmes").empty();
+    var url = "http://www.bbc.co.uk/tv/programmes/genres/" + genre + "/schedules/tomorrow.json";
+    $.getJSON(url, function(data) {
+        console.log(data.broadcasts);
+        processEpisode(data.broadcasts);
+       
+    })
+}
+
+function processEpisode(episodes) {
+    $.each(episodes, function(index, episode) {
+    var item_html = "<li></li>"
+    var image = "<img src=http://ichef.bbci.co.uk/images/ic/272x153/image/" + episode.programme.image.pid + ".jpg />";
+ //   if (episode.programme.image === undefined || episode.programme.image.pid === undefined) {
+  //    image = "<img src=http://placehold.it/272x153 />";
+ //   }
+    item_html +=  "<h2>\"" + episode.programme.display_titles.title + "\"</h2>" +
+          "<h2>\"" + episode.programme.short_synopsis + "\"</h2>" +
+          "<h2>" + formatDate(episode.start, episode.end) + "</h2>" +
+          "<h2>" + "Duration: " + (episode.programme.duration / 60) + " minutes" + "</h2>" +
+          "<h2>" + episode.programme.ownership.service.title + "</h2>" +
+          "<img src=http://ichef.bbci.co.uk/images/ic/272x153/image/" + episode.programme.image.pid + ".jpg />"
+          ;
+    $("#programmes").append(item_html);
+  })
+}
+
+ function formatDate(start, end) { 
 
     var start_date = new Date(start);
     var end_date = new Date(end);
